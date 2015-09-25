@@ -1,0 +1,23 @@
+---
+layout: default
+
+---
+
+<div class="geotelling">
+  <div class="geotelling-map"></div>
+  <div class="geotelling-overlay">
+    <div class="geotelling-items">
+      {{ content }}
+    </div>
+    <ol class="geotelling-pagination">
+    </ol>
+  </div>
+</div>
+
+<script src="{{ site.staticurl }}/js/vendor/d3/d3.min.js"></script>
+<script src="{{ site.staticurl }}/js/vendor/topojson/topojson.js"></script>
+<script src="{{ site.staticurl }}/js/geotelling.js"></script>
+<script>
+  var geotelling = new GeoTelling(document.getElementById('geotelling'), {{ page.config|jsonify }}, {baseurl: "{{ site.baseurl }}"});
+  geotelling.init();
+</script>

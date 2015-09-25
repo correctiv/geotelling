@@ -1,0 +1,22 @@
+markdown: rdiscount
+highlighter: pygments
+baseurl: /geotelling
+staticurl: /geotelling/static
+gems:
+  - jekyll-redirect-from
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "projects"
+    values:
+      layout: "project"
+
+collections:
+  projects:
+    output: true
+    permalink: /project/:path/
+
+sass:
+  style: compressed
