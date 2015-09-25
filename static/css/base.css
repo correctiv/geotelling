@@ -1,8 +1,4 @@
-body {
-  font: 14px sans-serif;
-}
-
-path {
+.geotelling path {
   stroke-width: 1px;
   stroke: #828282;
   fill: #999;
@@ -11,6 +7,10 @@ path {
 .geotelling-overlay {
   max-width: 600px;
   margin-bottom: 50px;
+  border: 1px solid #aaa;
+  padding: 15px;
+  overflow: hidden;
+  border-radius: 3px;
 }
 
 .geotelling-items .geotelling-item {
