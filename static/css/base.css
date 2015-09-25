@@ -25,6 +25,10 @@ path {
   margin-bottom: 10px;
 }
 
+.geotelling-pagination li {
+  padding: 0;
+}
+
 .geotelling-pagination li a {
   display: block;
   float: left;
