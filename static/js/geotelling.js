@@ -46,7 +46,7 @@ function GeoTelling(node, config, site) {
 }
 
 GeoTelling.prototype.resize = function() {
-  this.width = document.body.offsetWidth;
+  this.width = this.node.offsetWidth;
   this.height = this.width * 0.8;
   this.dim = Math.min(this.width, this.height);
   this.projection
