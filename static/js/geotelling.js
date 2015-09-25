@@ -28,6 +28,8 @@ function GeoTelling(node, config, site) {
   this.svg = d3.select(node).select('.geotelling-map').append("svg");
   this.svgFeatures = this.svg.append("g")
       .attr("class", "features");
+  this.legend = this.svg.append('g')
+      .attr('class', 'geotelling-legend');
   this.tooltip = d3.select(node).append("div").attr("class", "geotelling-tooltip");
   this.color = d3.scale.quantize();
   d3.select('.geotelling-pagination').selectAll('li').data(this.config.steps)
@@ -56,6 +58,7 @@ GeoTelling.prototype.resize = function() {
   this.svg
     .attr("width", this.width)
     .attr("height", this.height);
+
 };
 
 GeoTelling.prototype.redata = function(data) {
@@ -137,6 +140,7 @@ var dataValueGetter = function(key) {
 
 
 GeoTelling.prototype.analyseData = function(features) {
+  var self = this;
   var min = Infinity, max = -Infinity;
   this.config.steps.forEach(function(step, i){
     if (step.dataKey !== undefined) {
@@ -145,6 +149,38 @@ GeoTelling.prototype.analyseData = function(features) {
     }
   });
   this.color.domain([min, max]).range(colorbrewer.PuRd);
+
+  var legendRectSize = 15;
+  var legendSpacing = 4;
+
+  this.legend.attr('transform', 'translate(' + (legendRectSize * 2) + ',' + (self.height - self.color.range().length * legendRectSize) + ')');
+
+  var legendParts = this.legend.selectAll('.geotelling-legendparts')
+    .data(this.color.range())
+    .enter()
+      .append('g')
+      .attr('class', 'geotelling-legendparts')
+      .attr('transform', function(d, i) {
+        var height = legendRectSize + legendSpacing;
+        var offset =  height * self.color.range().length / 2;
+        var horz = -2 * legendRectSize;
+        var vert = i * height - offset;
+        return 'translate(' + horz + ',' + vert + ')';
+      });
+  legendParts
+    .append('rect')
+      .attr('width', legendRectSize)
+      .attr('height', legendRectSize)
+      .style('fill', function(d) { return d;})
+      .style('stroke', '#828282');
+  legendParts.append('text')
+    .classed('geotelling-legend-text', true)
+    .attr('x', legendRectSize + legendSpacing)
+    .attr('y', legendRectSize - legendSpacing)
+    .text(function(d, i) {
+      var extent = self.color.invertExtent(d);
+      return Math.floor(extent[0]) + ' - ' + Math.floor(extent[1]);
+    });
 };
 
 

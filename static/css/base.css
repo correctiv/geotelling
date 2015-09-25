@@ -61,3 +61,7 @@ path {
 .geotelling-tooltip p {
   margin: 0;
 }
+
+.geotelling-legend-text {
+  font-size: 12px;
+}
