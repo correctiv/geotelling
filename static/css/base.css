@@ -1,3 +1,7 @@
+.geotelling {
+  position: relative;
+}
+
 .geotelling path {
   stroke-width: 1px;
   stroke: #828282;

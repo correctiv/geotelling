@@ -123,7 +123,13 @@ GeoTelling.prototype.refresh = function() {
       .attr("d", this.geopath)
       .on("mouseover", function(d){ return self.showTooltip(d);})
       .on("mousemove", function(d){ return self.moveTooltip(d);})
-      .on("mouseout", function(d){ return self.hideTooltip(d);});
+      .on("mouseout", function(d){ return self.hideTooltip(d);})
+      .on("touchstart", function(d){
+        var tooltipShown = self.tooltip.style("display") != 'none';
+        self.showTooltip(d);
+        self.moveTooltip();
+        self.tooltip.style("display", tooltipShown ? 'none' : 'block');
+      });
 
   paths
     .style("fill", function(d) {
@@ -200,18 +206,18 @@ GeoTelling.prototype.init = function() {
 
 //Create a tooltip, hidden at the start
 GeoTelling.prototype.showTooltip = function (d) {
+  this.tooltip.style("display","block")
   if (d.properties !== undefined) {
-    this.tooltip.style("display","block")
+    this.tooltip
         .html('<h4>' + d.properties.label + '</h4><p><strong>' + Math.round(d.properties[this.currentValue] * 10) / 10 + '</strong> Psychiatrische Betten pro 100.000 Einwohner</p>');
   } else {
-    this.tooltip.style("display","block")
-        .text(d.label);
+    this.tooltip.text(d.label);
   }
 };
 
 GeoTelling.prototype.moveTooltip = function() {
-  this.tooltip.style("top", (d3.event.pageY + tooltipOffset.y) + "px")
-              .style("left", (d3.event.pageX + tooltipOffset.x) + "px");
+  this.tooltip.style("top", (d3.event.offsetY + tooltipOffset.y) + "px")
+              .style("left", (d3.event.offsetX + tooltipOffset.x) + "px");
 };
 
 GeoTelling.prototype.hideTooltip = function() {
