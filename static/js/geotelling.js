@@ -10,6 +10,12 @@ var colorbrewer = {
   PuRd: ['rgb(247,244,249)','rgb(231,225,239)','rgb(212,185,218)','rgb(201,148,199)','rgb(223,101,176)','rgb(231,41,138)','rgb(206,18,86)','rgb(152,0,67)','rgb(103,0,31)']
 };
 
+var render = function(template, context) {
+  return template.replace(/\{(\w+)\}/g, function(match, p1) {
+    return context[p1];
+  });
+};
+
 var tooltipOffset = {x: 5, y: -25};
 
 function GeoTelling(node, config, site) {
@@ -18,11 +24,10 @@ function GeoTelling(node, config, site) {
   this.config = config;
   this.site = site;
 
-  this.currentValue = config.defaultDataKey;
-
   this.projection = d3.geo.albers()
-      .center([0, 51.1])
-      .rotate([-10.4, 0])
+      .parallels([50, 60])
+      .center(this.config.center)
+      .rotate(this.config.rotation)
       .precision(0.1);
   this.geopath = d3.geo.path();
   this.svg = d3.select(node).select('.geotelling-map').append("svg");
@@ -45,14 +50,17 @@ function GeoTelling(node, config, site) {
         return false;
       });
   d3.select('.geotelling-pagination li a').classed('active', true);
+  this.stepNum = 0;
+  this.step = this.config.steps[this.stepNum];
+  this.currentValue = config.defaultDataKey || this.step.dataKey;
 }
 
 GeoTelling.prototype.resize = function() {
   this.width = this.node.offsetWidth;
-  this.height = this.width * 0.8;
+  this.height = this.width * this.config.heightRatio;
   this.dim = Math.min(this.width, this.height);
   this.projection
-      .scale(7 * this.dim)
+      .scale(this.config.baseScale * this.dim)
       .translate([this.width / 2, this.height / 2]);
   this.geopath.projection(this.projection);
   this.svg
@@ -61,19 +69,48 @@ GeoTelling.prototype.resize = function() {
 
 };
 
-GeoTelling.prototype.redata = function(data) {
+GeoTelling.prototype.redata = function(geodata, csvdata) {
   // React to data changes
   var self = this;
-  this.features = topojson.feature(data, data.objects.data).features;
+  if (geodata) {
+    if (geodata.type === 'Topology') {
+      var topoKey = this.config.topokey || 'data';
+      this.features = topojson.feature(geodata, geodata.objects[topoKey]).features;
+    } else {
+      this.features = geodata.features;
+    }
+  }
+  if (csvdata) {
+    this.data = csvdata;
+  }
 
-  this.analyseData(this.features);
+  if (this.features && this.data) {
+    var dataIndex = {};
+    this.data.forEach(function(d) {
+      dataIndex[d[self.config.joinkey]] = d;
+    });
+    this.features.forEach(function(d){
+      var row = dataIndex[d.properties[self.config.joinkey]];
+      if (row === undefined) {
+        return;
+      }
+      for (var key in row) {
+        d.properties[key] = row[key];
+      }
+    });
+  }
 
-  this.refresh();
-    // .on("click", clicked);
+  if (this.features && (!this.config.datapath || this.data)) {
+    this.analyseData(this.features);
+    this.refresh();
+  }
 };
 
 GeoTelling.prototype.goToStep = function(step, stepnum) {
   var self = this;
+  this.stepNum = stepnum;
+  this.step = step;
+
   if (step.dataKey !== undefined) {
     this.currentValue = step.dataKey;
   }
@@ -133,14 +170,14 @@ GeoTelling.prototype.refresh = function() {
 
   paths
     .style("fill", function(d) {
-      return self.color(d.properties[self.currentValue]);
+      return self.color(dataValueGetter(self.currentValue)(d));
     });
 };
 
 
 var dataValueGetter = function(key) {
   return function(d) {
-    return d.properties[key];
+    return +d.properties[key];
   };
 };
 
@@ -201,18 +238,37 @@ GeoTelling.prototype.init = function() {
     }
     self.redata(geodata);
   });
+  if (this.config.datapath) {
+    d3.csv(this.site.baseurl + '/static/data/' + this.config.datapath, function(error, csvdata) {
+      if (error) {
+        return console.log(error); //unknown error, check the console
+      }
+      self.redata(null, csvdata);
+    });
+  }
+};
+
+var merge = function(a, b) {
+  var obj = {};
+  for (var key in a) {
+    obj[key] = a[key];
+  }
+  for (key in b) {
+    obj[key] = b[key];
+  }
+  return obj;
 };
 
 
 //Create a tooltip, hidden at the start
 GeoTelling.prototype.showTooltip = function (d) {
-  this.tooltip.style("display","block")
-  if (d.properties !== undefined) {
-    this.tooltip
-        .html('<h4>' + d.properties.label + '</h4><p><strong>' + Math.round(d.properties[this.currentValue] * 10) / 10 + '</strong> Psychiatrische Betten pro 100.000 Einwohner</p>');
-  } else {
-    this.tooltip.text(d.label);
-  }
+  this.tooltip.style("display", "block");
+  var tooltipTemplate = this.step.tooltip || this.config.tooltip || '{label}';
+  var tooltipString = render(tooltipTemplate, merge(d.properties, {
+    roundedValue: Math.round(d.properties[this.currentValue] * 10) / 10,
+    value: d.properties[this.currentValue]
+  }));
+  this.tooltip.html(tooltipString);
 };
 
 GeoTelling.prototype.moveTooltip = function() {

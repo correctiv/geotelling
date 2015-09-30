@@ -10,8 +10,13 @@ extraStyle: |
   }
 
 config:
+  center: [0, 51.1]
+  rotation: [-10.4, 0]
+  heightRatio: 0.8
+  baseScale: 7
   defaultDataKey: value_2003
-  geopath: germany_states.topojson
+  geopath: de_states.topojson
+  tooltip: "<h4>{label}</h4><p><strong>{roundedValue}</strong> Psychiatrische Betten pro 100.000 Einwohner</p>"
   steps:
     -
       dataKey: value_2003
