@@ -1,0 +1,34 @@
+---
+title: Ausbildungsplätze in Bremen
+description: Ausbildungsplätze in Bremen
+
+config:
+  center: [0, 53.075878]
+  rotation: [-8.75, 0]
+  heightRatio: 1.0
+  baseScale: 170
+  datapath: bremen_ausbildungsplaetze.csv
+  geopath: de_bremen.topojson
+  topokey: de_bremen
+  joinkey: name
+  tooltip: "{name}"
+  steps:
+    -
+      dataKey: "Anteil U18 2013"
+    -
+      dataKey: "Anteil U18 2025"
+
+---
+
+<div class="geotelling-item active">
+  <h3>Psychiatrische Betten im Jahr 2003</h3>
+  <p>
+    Spitzenreiter: Im Stadtstaat Bremen gab es im Jahr 2003 genau 106 Psychiatriebetten pro 100.000 Einwohner. Auf den nächsten Plätzen folgten Schleswig-Hostein und Nordrhein-Westfalen mit 90 Betten. Die geringste Zahl von Psychiatriebetten gab es damals mit jeweils 60 pro 100.000 Einwohner in Rheinland-Pfalz
+  </p>
+</div>
+<div class="geotelling-item">
+  <h3>Psychiatrische Betten im Jahr 2013</h3>
+  <p>
+    Fast überall in Deutschland stieg die Zahl der Psychiatrie-Betten in den vergangenen zehn Jahren kräftig: Spitzenreiter ist heute Schleswig-Holstein mit 101 Psychiatriebetten pro 100.000 Einwohner, auf den nächsten Plätzen folgen Bremen, Nordrhein-Westfalen, Sachsen-Anhalt und Thüringen. Mit den wenigsten Betten kommt Brandenburg aus (74 pro 100.000 Einwohner).
+  </p>
+</div>
