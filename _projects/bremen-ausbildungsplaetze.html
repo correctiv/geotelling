@@ -11,24 +11,29 @@ config:
   geopath: de_bremen.topojson
   topokey: de_bremen
   joinkey: name
-  tooltip: "{name}"
+  tooltip: "{name}: {value}%"
+  tooltipUndefined: "{name} - keine Angaben"
   steps:
     -
-      dataKey: "Anteil U18 2013"
+      dataKey: "Anteil Berufsschüler im Übergangssystem 2014"
+      scale:
+        name: "berufsschueler"
     -
-      dataKey: "Anteil U18 2025"
+      dataKey: "Arbeitslose U25 2014"
+      scale:
+        name: "arbeitslose_u25"
 
 ---
 
 <div class="geotelling-item active">
-  <h3>Psychiatrische Betten im Jahr 2003</h3>
+  <h3>Jugendliche im Übergangssystem 2014</h3>
   <p>
-    Spitzenreiter: Im Stadtstaat Bremen gab es im Jahr 2003 genau 106 Psychiatriebetten pro 100.000 Einwohner. Auf den nächsten Plätzen folgten Schleswig-Hostein und Nordrhein-Westfalen mit 90 Betten. Die geringste Zahl von Psychiatriebetten gab es damals mit jeweils 60 pro 100.000 Einwohner in Rheinland-Pfalz
+    Spitzenreiter: In Gröpelingen gehen 57 Prozent der Berufsschüler in berufsvorbereitende Maßnahmen. Oder holen in diesem sogenannten Übergangssystem ihren Schulabschluss nach. Nur die Minderheit lernt in diesem migrantischen Stadtteil tatsächlich noch einen Beruf. Ganz anders im wohlhabenden Schwachhausen. Dort sind drei Viertel in einer echten Ausbildung.
   </p>
 </div>
 <div class="geotelling-item">
-  <h3>Psychiatrische Betten im Jahr 2013</h3>
+  <h3>Jugendarbeitslosigkeit 2014</h3>
   <p>
-    Fast überall in Deutschland stieg die Zahl der Psychiatrie-Betten in den vergangenen zehn Jahren kräftig: Spitzenreiter ist heute Schleswig-Holstein mit 101 Psychiatriebetten pro 100.000 Einwohner, auf den nächsten Plätzen folgen Bremen, Nordrhein-Westfalen, Sachsen-Anhalt und Thüringen. Mit den wenigsten Betten kommt Brandenburg aus (74 pro 100.000 Einwohner).
+    Das Problem setzt sich fort: In keinem anderen Stadtteil sind so viele Jugendliche arbeitslos. Fast ein Viertel der Gröpelinger zwischen 18 und 25 Jahren sucht eine Stelle. In Schwachhausen oder Horn-Lehe sind es nur um die 5 Prozent.
   </p>
 </div>

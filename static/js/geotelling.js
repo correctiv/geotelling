@@ -29,6 +29,9 @@ function GeoTelling(node, config, site) {
       .center(this.config.center)
       .rotate(this.config.rotation)
       .precision(0.1);
+  this.scales = {
+    default: d3.scale.quantize()
+  };
   this.geopath = d3.geo.path();
   this.svg = d3.select(node).select('.geotelling-map').append("svg");
   this.svgFeatures = this.svg.append("g")
@@ -36,7 +39,6 @@ function GeoTelling(node, config, site) {
   this.legend = this.svg.append('g')
       .attr('class', 'geotelling-legend');
   this.tooltip = d3.select(node).append("div").attr("class", "geotelling-tooltip");
-  this.color = d3.scale.quantize();
   d3.select('.geotelling-pagination').selectAll('li').data(this.config.steps)
     .enter().append('li')
       .append('a')
@@ -170,8 +172,64 @@ GeoTelling.prototype.refresh = function() {
 
   paths
     .style("fill", function(d) {
-      return self.color(dataValueGetter(self.currentValue)(d));
+
+      return self.getScale()(dataValueGetter(self.currentValue)(d));
     });
+
+
+  var legendRectSize = 15;
+  var legendSpacing = 4;
+
+  var scale = this.getScale();
+
+  this.legend.attr('transform', 'translate(' + (legendRectSize * 2) + ',' + (self.height - scale.range().length * legendRectSize) + ')');
+
+  this.legend.selectAll('.geotelling-legendparts').remove();
+
+  var legendParts = this.legend.selectAll('.geotelling-legendparts')
+    .data(scale.range())
+    .enter()
+      .append('g')
+      .attr('class', 'geotelling-legendparts')
+
+  legendParts
+      .attr('transform', function(d, i) {
+        var height = legendRectSize + legendSpacing;
+        var offset =  height *  scale.range().length / 2;
+        var horz = -2 * legendRectSize;
+        var vert = i * height - offset;
+        return 'translate(' + horz + ',' + vert + ')';
+      });
+  var legendRects = legendParts
+    .append('rect')
+      .attr('width', legendRectSize)
+      .attr('height', legendRectSize)
+
+  legendRects
+      .style('fill', function(d) { return d;})
+      .style('stroke', '#828282');
+
+  var legendTexts = legendParts.append('text')
+    .classed('geotelling-legend-text', true)
+    .attr('x', legendRectSize + legendSpacing)
+    .attr('y', legendRectSize - legendSpacing)
+
+  legendTexts
+    .text(function(d, i) {
+      var extent = scale.invertExtent(d);
+      return Math.floor(extent[0]) + ' - ' + Math.floor(extent[1]);
+    });
+
+
+};
+
+
+GeoTelling.prototype.getScale = function(d) {
+  if (this.step.scale !== undefined) {
+    return this.scales[this.step.scale.name];
+  } else {
+    return this.scales.default;
+  }
 };
 
 
@@ -181,49 +239,39 @@ var dataValueGetter = function(key) {
   };
 };
 
+GeoTelling.prototype.makeScale = function(step) {
+  var min = Infinity, max = -Infinity;
+  min = Math.min(min, d3.min(this.features, dataValueGetter(step.dataKey)));
+  max = Math.max(max, d3.max(this.features, dataValueGetter(step.dataKey)));
+
+  var scale = this.scales[step.scale.name];
+  if (scale !== undefined) {
+    var domain = scale.domain();
+    min = Math.min(min, domain[0]);
+    max = Math.max(max, domain[0]);
+    scale.domain([min, max]);
+    return scale;
+  }
+  return d3.scale.quantize().domain([min, max]).range(step.scale.range || colorbrewer.PuRd);
+}
+
 
 GeoTelling.prototype.analyseData = function(features) {
   var self = this;
   var min = Infinity, max = -Infinity;
   this.config.steps.forEach(function(step, i){
     if (step.dataKey !== undefined) {
-      min = Math.min(min, d3.min(features, dataValueGetter(step.dataKey)));
-      max = Math.max(max, d3.max(features, dataValueGetter(step.dataKey)));
+      var scale = step.scale;
+      if (scale === undefined) {
+        scale = self.scales.default;
+        min = Math.min(min, d3.min(features, dataValueGetter(step.dataKey)));
+        max = Math.max(max, d3.max(features, dataValueGetter(step.dataKey)));
+      } else {
+        self.scales[step.scale.name] = self.makeScale(step);
+      }
     }
   });
-  this.color.domain([min, max]).range(colorbrewer.PuRd);
-
-  var legendRectSize = 15;
-  var legendSpacing = 4;
-
-  this.legend.attr('transform', 'translate(' + (legendRectSize * 2) + ',' + (self.height - self.color.range().length * legendRectSize) + ')');
-
-  var legendParts = this.legend.selectAll('.geotelling-legendparts')
-    .data(this.color.range())
-    .enter()
-      .append('g')
-      .attr('class', 'geotelling-legendparts')
-      .attr('transform', function(d, i) {
-        var height = legendRectSize + legendSpacing;
-        var offset =  height * self.color.range().length / 2;
-        var horz = -2 * legendRectSize;
-        var vert = i * height - offset;
-        return 'translate(' + horz + ',' + vert + ')';
-      });
-  legendParts
-    .append('rect')
-      .attr('width', legendRectSize)
-      .attr('height', legendRectSize)
-      .style('fill', function(d) { return d;})
-      .style('stroke', '#828282');
-  legendParts.append('text')
-    .classed('geotelling-legend-text', true)
-    .attr('x', legendRectSize + legendSpacing)
-    .attr('y', legendRectSize - legendSpacing)
-    .text(function(d, i) {
-      var extent = self.color.invertExtent(d);
-      return Math.floor(extent[0]) + ' - ' + Math.floor(extent[1]);
-    });
+  this.scales.default.domain([min, max]).range(colorbrewer.PuRd);
 };
 
 
@@ -263,10 +311,16 @@ var merge = function(a, b) {
 //Create a tooltip, hidden at the start
 GeoTelling.prototype.showTooltip = function (d) {
   this.tooltip.style("display", "block");
-  var tooltipTemplate = this.step.tooltip || this.config.tooltip || '{label}';
+  var value = d.properties[this.currentValue];
+  var tooltipTemplate;
+  if (value !== undefined) {
+    tooltipTemplate = this.step.tooltip || this.config.tooltip || '{label}';
+  } else {
+    tooltipTemplate = this.step.tooltipUndefined || this.config.tooltipUndefined || '{label}';
+  }
   var tooltipString = render(tooltipTemplate, merge(d.properties, {
-    roundedValue: Math.round(d.properties[this.currentValue] * 10) / 10,
-    value: d.properties[this.currentValue]
+    roundedValue: Math.round(value * 10) / 10,
+    value: value
   }));
   this.tooltip.html(tooltipString);
 };
