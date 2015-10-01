@@ -181,6 +181,7 @@ GeoTelling.prototype.refresh = function() {
   var legendSpacing = 4;
 
   var scale = this.getScale();
+  var configScale = this.step.scale || {};
 
   this.legend.attr('transform', 'translate(' + (legendRectSize * 2) + ',' + (self.height - scale.range().length * legendRectSize) + ')');
 
@@ -190,7 +191,7 @@ GeoTelling.prototype.refresh = function() {
     .data(scale.range())
     .enter()
       .append('g')
-      .attr('class', 'geotelling-legendparts')
+      .attr('class', 'geotelling-legendparts');
 
   legendParts
       .attr('transform', function(d, i) {
@@ -203,7 +204,7 @@ GeoTelling.prototype.refresh = function() {
   var legendRects = legendParts
     .append('rect')
       .attr('width', legendRectSize)
-      .attr('height', legendRectSize)
+      .attr('height', legendRectSize);
 
   legendRects
       .style('fill', function(d) { return d;})
@@ -212,12 +213,13 @@ GeoTelling.prototype.refresh = function() {
   var legendTexts = legendParts.append('text')
     .classed('geotelling-legend-text', true)
     .attr('x', legendRectSize + legendSpacing)
-    .attr('y', legendRectSize - legendSpacing)
+    .attr('y', legendRectSize - legendSpacing);
 
   legendTexts
     .text(function(d, i) {
       var extent = scale.invertExtent(d);
-      return Math.floor(extent[0]) + ' - ' + Math.floor(extent[1]);
+      var postfix = configScale.postfix || '';
+      return Math.floor(extent[0]) + ' - ' + Math.floor(extent[1]) + postfix;
     });
 
 
