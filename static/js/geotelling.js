@@ -235,7 +235,10 @@ GeoTelling.prototype.getScale = function(d) {
 
 var dataValueGetter = function(key) {
   return function(d) {
-    return +d.properties[key];
+    if (d.properties[key] !== undefined && d.properties[key] !== '') {
+      return +d.properties[key];
+    }
+    return undefined;
   };
 };
 
@@ -313,7 +316,7 @@ GeoTelling.prototype.showTooltip = function (d) {
   this.tooltip.style("display", "block");
   var value = d.properties[this.currentValue];
   var tooltipTemplate;
-  if (value !== undefined) {
+  if (value !== undefined && value !== '') {
     tooltipTemplate = this.step.tooltip || this.config.tooltip || '{label}';
   } else {
     tooltipTemplate = this.step.tooltipUndefined || this.config.tooltipUndefined || '{label}';
